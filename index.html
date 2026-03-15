@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大学城美食地图</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f5f0;
+    --surface: #ffffff;
+    --surface2: #f0ede6;
+    --border: #e2ddd5;
+    --border2: #ccc8bf;
+    --text: #1a1814;
+    --text2: #6b6760;
+    --text3: #a09d98;
+    --accent: #c84b2f;
+    --accent-bg: #fdf1ee;
+    --accent-border: #f0c4b8;
+    --purple: #5b4fcf;
+    --purple-bg: #efedfc;
+    --purple-border: #c5c0f0;
+    --green: #2a7a4b;
+    --green-bg: #e8f5ee;
+    --green-border: #a8d8bc;
+    --amber: #a05c10;
+    --amber-bg: #fef3e2;
+    --amber-border: #f5d49a;
+    --blue: #1a5fa8;
+    --blue-bg: #e8f0fb;
+    --blue-border: #aac4ec;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.07);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans SC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* ── Header ── */
+  .site-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    font-size: 16px;
+  }
+  .logo-text { font-size: 17px; font-weight: 700; color: var(--text); }
+  .logo-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
+  .header-stats { font-size: 12px; color: var(--text3); }
+
+  /* ── Main layout ── */
+  .main { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+
+  /* ── School selector ── */
+  .section-label {
+    font-size: 12px;
+    color: var(--text3);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+  .school-grid {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .school-btn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.15s;
+    min-width: 130px;
+  }
+  .school-btn:hover { border-color: var(--border2); background: var(--surface2); }
+  .school-btn.active {
+    background: var(--purple-bg);
+    border-color: var(--purple-border);
+  }
+  .school-btn.active .school-btn-name { color: var(--purple); }
+  .school-avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+    color: var(--text2);
+    flex-shrink: 0;
+  }
+  .school-btn.active .school-avatar {
+    background: var(--purple-border);
+    color: var(--purple);
+  }
+  .school-btn-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .school-btn-count { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+  /* ── Campus sub-tabs ── */
+  .campus-row {
+    display: none;
+    gap: 7px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    align-items: center;
+  }
+  .campus-row.visible { display: flex; }
+  .campus-row-label { font-size: 12px; color: var(--text3); margin-right: 4px; }
+  .campus-chip {
+    font-size: 12px; padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .campus-chip:hover { border-color: var(--border2); }
+  .campus-chip.active {
+    background: var(--green-bg);
+    border-color: var(--green-border);
+    color: var(--green);
+  }
+
+  /* ── Location bar ── */
+  .location-bar {
+    display: flex; gap: 10px; align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 11px 14px;
+    margin-bottom: 20px;
+  }
+  .loc-pin {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--purple-bg);
+    border: 1px solid var(--purple-border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    color: var(--purple);
+    font-size: 14px;
+  }
+  .loc-field { flex: 1; }
+  .loc-field label { font-size: 11px; color: var(--text3); display: block; margin-bottom: 2px; }
+  .loc-field select {
+    width: 100%; border: none; background: transparent;
+    font-size: 14px; font-family: 'Noto Sans SC', sans-serif;
+    color: var(--text); outline: none; cursor: pointer;
+  }
+  .gps-btn {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 12px; padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+  .gps-btn:hover { background: var(--surface2); }
+
+  /* ── Filter row ── */
+  .filter-row {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .filter-label { font-size: 12px; color: var(--text3); margin-right: 2px; }
+  .chip {
+    font-size: 12px; padding: 5px 13px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .chip:hover { border-color: var(--border2); }
+  .chip.active {
+    background: var(--purple-bg);
+    border-color: var(--purple-border);
+    color: var(--purple);
+  }
+  .vd { width: 1px; height: 20px; background: var(--border); margin: 0 2px; }
+  .surprise-btn {
+    font-size: 12px; padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--amber-border);
+    background: var(--amber-bg);
+    color: var(--amber);
+    cursor: pointer;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .surprise-btn:hover { filter: brightness(0.95); }
+
+  /* ── Results bar ── */
+  .results-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+  }
+  .results-count { font-size: 13px; color: var(--text3); }
+  .sort-group { display: flex; gap: 4px; }
+  .sort-btn {
+    font-size: 12px; padding: 4px 11px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    font-family: 'Noto Sans SC', sans-serif;
+    transition: all 0.15s;
+  }
+  .sort-btn.active {
+    background: var(--surface);
+    border-color: var(--border2);
+    color: var(--text);
+  }
+
+  /* ── Restaurant grid ── */
+  .restaurant-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--border2);
+  }
+  .card-img-wrap { position: relative; }
+  .card-img {
+    width: 100%; height: 150px;
+    object-fit: cover; display: block;
+    background: var(--surface2);
+  }
+  .card-img-ph {
+    width: 100%; height: 150px;
+    background: var(--surface2);
+    display: none; align-items: center; justify-content: center;
+    font-size: 36px;
+  }
+  .dist-pill {
+    position: absolute; bottom: 8px; left: 8px;
+    font-size: 11px; padding: 3px 9px;
+    border-radius: 20px;
+    background: rgba(0,0,0,0.58);
+    color: white;
+    display: flex; align-items: center; gap: 4px;
+    backdrop-filter: blur(4px);
+  }
+  .card-body { padding: 13px 15px; }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .card-name { font-size: 15px; font-weight: 700; color: var(--text); }
+  .card-rating { font-size: 13px; color: var(--amber); font-weight: 500; }
+  .card-badges { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 9px; }
+  .badge {
+    font-size: 11px; padding: 2px 8px;
+    border-radius: 10px; font-weight: 500;
+  }
+  .badge-cuisine { background: var(--blue-bg); color: var(--blue); }
+  .badge-budget { background: var(--green-bg); color: var(--green); }
+  .badge-hot { background: var(--accent-bg); color: var(--accent); }
+  .badge-near { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+  .badge-school { background: var(--purple-bg); color: var(--purple); }
+  .card-footer { font-size: 12px; color: var(--text3); }
+
+  /* ── Empty state ── */
+  .empty-state {
+    text-align: center; padding: 60px 0;
+    color: var(--text3); font-size: 14px;
+    grid-column: 1 / -1;
+  }
+  .empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border);
+    width: min(500px, 100%);
+    max-height: 88vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    animation: modalIn 0.2s ease;
+  }
+  @keyframes modalIn {
+    from { transform: translateY(16px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  .modal-img {
+    width: 100%; height: 200px;
+    object-fit: cover; display: block;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+  .modal-img-ph {
+    width: 100%; height: 200px;
+    background: var(--surface2);
+    display: none; align-items: center; justify-content: center;
+    font-size: 52px;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+  .modal-body { padding: 20px; }
+  .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+  .modal-title { font-size: 20px; font-weight: 700; }
+  .modal-meta { font-size: 13px; color: var(--text2); margin-top: 3px; }
+  .modal-close {
+    font-size: 22px; color: var(--text3);
+    background: none; border: none; cursor: pointer;
+    line-height: 1; padding: 0; margin-left: 12px;
+  }
+  .modal-dist-banner {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--green-bg); border: 1px solid var(--green-border);
+    border-radius: var(--radius-sm); padding: 9px 12px;
+    font-size: 13px; color: var(--green);
+    margin-bottom: 16px;
+  }
+  .modal-section { margin-bottom: 16px; }
+  .modal-section-label { font-size: 11px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .school-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .school-pill { font-size: 12px; padding: 3px 10px; background: var(--purple-bg); color: var(--purple); border-radius: 10px; }
+  .dish-list { display: flex; flex-direction: column; gap: 7px; }
+  .dish-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 14px; padding: 9px 12px;
+    background: var(--surface2); border-radius: var(--radius-sm);
+  }
+  .dish-price { color: var(--green); font-weight: 500; }
+  .review-list { display: flex; flex-direction: column; gap: 8px; }
+  .review-row {
+    font-size: 13px; line-height: 1.6;
+    padding: 9px 12px;
+    background: var(--surface2); border-radius: var(--radius-sm);
+    color: var(--text2);
+    border-left: 3px solid var(--border2);
+  }
+  .ai-suggest-btn {
+    width: 100%; padding: 11px;
+    font-size: 13px; font-family: 'Noto Sans SC', sans-serif;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-top: 4px;
+  }
+  .ai-suggest-btn:hover { background: var(--surface); border-color: var(--border2); }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    .main { padding: 20px 16px; }
+    .site-header { padding: 0 16px; }
+    .school-btn { min-width: 100px; padding: 8px 12px; }
+    .restaurant-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .header-stats { display: none; }
+  }
+  @media (max-width: 400px) {
+    .restaurant-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">🍜</div>
+      <div>
+        <div class="logo-text">大学城美食地图</div>
+      </div>
+    </div>
+    <div class="header-stats" id="header-stats"></div>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- 选学校 -->
+  <div class="section-label">选择你的学校</div>
+  <div class="school-grid" id="school-grid">
+    <button class="school-btn active" data-school="all">
+      <div class="school-avatar">全</div>
+      <div>
+        <div class="school-btn-name">全部学校</div>
+        <div class="school-btn-count" id="count-all">— 家餐厅</div>
+      </div>
+    </button>
+    <button class="school-btn" data-school="A">
+      <div class="school-avatar">A</div>
+      <div>
+        <div class="school-btn-name">A 大学</div>
+        <div class="school-btn-count" id="count-A">— 家餐厅</div>
+      </div>
+    </button>
+    <button class="school-btn" data-school="B">
+      <div class="school-avatar">B</div>
+      <div>
+        <div class="school-btn-name">B 大学</div>
+        <div class="school-btn-count" id="count-B">— 家餐厅</div>
+      </div>
+    </button>
+    <button class="school-btn" data-school="C">
+      <div class="school-avatar">C</div>
+      <div>
+        <div class="school-btn-name">C 大学</div>
+        <div class="school-btn-count" id="count-C">— 家餐厅</div>
+      </div>
+    </button>
+    <button class="school-btn" data-school="D">
+      <div class="school-avatar">D</div>
+      <div>
+        <div class="school-btn-name">D 大学</div>
+        <div class="school-btn-count" id="count-D">— 家餐厅</div>
+      </div>
+    </button>
+  </div>
+
+  <!-- 校区子选择 -->
+  <div class="campus-row" id="campus-row">
+    <span class="campus-row-label">校区：</span>
+    <span class="campus-chip active" data-campus="all">全部校区</span>
+  </div>
+
+  <!-- 位置栏 -->
+  <div class="location-bar">
+    <div class="loc-pin">📍</div>
+    <div class="loc-field">
+      <label>我现在在</label>
+      <select id="loc-select">
+        <option value="">选择你的具体位置…</option>
+      </select>
+    </div>
+    <button class="gps-btn" id="gps-btn">⊙ 定位我</button>
+  </div>
+
+  <!-- 筛选 -->
+  <div class="filter-row">
+    <span class="filter-label">预算</span>
+    <span class="chip active" data-type="budget" data-val="all">全部</span>
+    <span class="chip" data-type="budget" data-val="10">¥10以下</span>
+    <span class="chip" data-type="budget" data-val="20">¥10–20</span>
+    <span class="chip" data-type="budget" data-val="30">¥20–30</span>
+    <div class="vd"></div>
+    <span class="filter-label">菜系</span>
+    <span class="chip active" data-type="cuisine" data-val="all">全部</span>
+    <span class="chip" data-type="cuisine" data-val="快餐">快餐</span>
+    <span class="chip" data-type="cuisine" data-val="面馆">面馆</span>
+    <span class="chip" data-type="cuisine" data-val="韩餐">韩餐</span>
+    <span class="chip" data-type="cuisine" data-val="轻食">轻食</span>
+    <span class="chip" data-type="cuisine" data-val="烧烤">烧烤</span>
+    <div class="vd"></div>
+    <button class="surprise-btn" id="surprise-btn">🎲 随机推荐</button>
+  </div>
+
+  <!-- 结果栏 -->
+  <div class="results-bar">
+    <span class="results-count" id="results-count"></span>
+    <div class="sort-group">
+      <button class="sort-btn active" data-sort="dist">按距离</button>
+      <button class="sort-btn" data-sort="rating">按评分</button>
+      <button class="sort-btn" data-sort="budget">按价格</button>
+    </div>
+  </div>
+
+  <!-- 餐厅卡片 -->
+  <div class="restaurant-grid" id="grid"></div>
+
+</main>
+
+<!-- 详情弹窗 -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+// ── 数据 ─────────────────────────────────────────────
+const SCHOOLS = {
+  A: { name:"A大学", campuses:["主校区","北校区","东校区"] },
+  B: { name:"B大学", campuses:["本部校区","南校区"] },
+  C: { name:"C大学", campuses:["中心校区","西校区"] },
+  D: { name:"D大学", campuses:["全校区"] },
+};
+
+const LOCS = {
+  A: [
+    { val:"A_main_dorm",  label:"主校区·宿舍区",  x:0,   y:0 },
+    { val:"A_main_class", label:"主校区·教学楼",  x:0.3, y:0.2 },
+    { val:"A_main_lib",   label:"主校区·图书馆",  x:0.5, y:0.1 },
+    { val:"A_north_dorm", label:"北校区·宿舍区",  x:1.5, y:0.3 },
+    { val:"A_east_dorm",  label:"东校区·宿舍区",  x:2,   y:0.5 },
+  ],
+  B: [
+    { val:"B_main_dorm",  label:"本部校区·宿舍区", x:3,   y:0 },
+    { val:"B_main_class", label:"本部校区·教学楼", x:3.3, y:0.2 },
+    { val:"B_south_dorm", label:"南校区·宿舍区",  x:4,   y:0.4 },
+  ],
+  C: [
+    { val:"C_center_dorm",  label:"中心校区·宿舍区", x:6,   y:0 },
+    { val:"C_center_class", label:"中心校区·教学楼", x:6.3, y:0.2 },
+    { val:"C_west_dorm",    label:"西校区·宿舍区",  x:7,   y:0.3 },
+  ],
+  D: [
+    { val:"D_dorm",  label:"宿舍区", x:9,   y:0 },
+    { val:"D_class", label:"教学区", x:9.3, y:0.2 },
+  ],
+};
+const ALL_LOCS = Object.values(LOCS).flat();
+
+// 餐厅数据 ── 替换 img 字段为真实图片 URL 即可
+const RESTAURANTS = [
+  { id:1,  name:"沙县小吃",    cuisine:"快餐",    schools:["A","B"], budget:10, rating:4.3, hot:true,  x:0.8, y:1.2,
+    img:"https://i2.chinadaily.com.cn/images/201908/06/5d4940bba310cf3e982a29f6.jpeg",
+    dishes:[{n:"蒸饺",p:"¥6"},{n:"拌面",p:"¥8"},{n:"炒饭",p:"¥10"}],
+    reviews:["预算紧的时候救命，量大管饱","蒸饺是真的好吃，排队要趁早"] },
+  { id:2,  name:"老街麻辣烫",  cuisine:"麻辣烫",  schools:["A"],     budget:20, rating:4.6, hot:true,  x:0.5, y:1.8,
+    img:"https://img.zcool.cn/community/01e0c25f5b2d1ea801214168d3bdec.jpg",
+    dishes:[{n:"自选套餐",p:"¥15起"},{n:"加汤底",p:"¥2"}],
+    reviews:["下课必吃，辣度可调","料很新鲜，学生价实惠"] },
+  { id:3,  name:"越南米粉馆",  cuisine:"异国料理",schools:["B","C"], budget:25, rating:4.5, hot:false, x:4.2, y:1.5,
+    img:"https://www.ytower.com.tw/recipe/thumbs/C02-0285.jpg",
+    dishes:[{n:"牛肉米粉",p:"¥22"},{n:"鲜虾卷",p:"¥18"},{n:"椰奶",p:"¥12"}],
+    reviews:["环境干净，适合约饭","米粉汤底很正宗"] },
+  { id:4,  name:"五谷杂粮粥店",cuisine:"粥铺",    schools:["C"],     budget:10, rating:4.2, hot:false, x:6.2, y:1.0,
+    img:"https://kknews.cc/zh-tw/food/m2p3y6g_640.jpg",
+    dishes:[{n:"皮蛋瘦肉粥",p:"¥9"},{n:"油条",p:"¥3"},{n:"小笼包",p:"¥6"}],
+    reviews:["早饭首选，开门早","价格实惠，适合穷学生"] },
+  { id:5,  name:"韩式烤肉饭",  cuisine:"韩餐",    schools:["A","C"], budget:28, rating:4.7, hot:true,  x:3.0, y:2.2,
+    img:"https://img.alicdn.com/imgextra/i1/2208885842626/O1CN01wXYvEj1GCJ4GCOGlR_!!2208885842626.jpg",
+    dishes:[{n:"石锅拌饭",p:"¥25"},{n:"泡菜汤饭",p:"¥22"},{n:"炸鸡",p:"¥28"}],
+    reviews:["周末聚餐神店","份量足，拍照也好看"] },
+  { id:6,  name:"云南米线",    cuisine:"米线",    schools:["B"],     budget:15, rating:4.4, hot:false, x:3.5, y:1.0,
+    img:"https://img.alicdn.com/imgextra/i3/2206686532409/O1CN01U8K6bT1ySMNrI5mRx_!!2206686532409.jpg",
+    dishes:[{n:"过桥米线",p:"¥14"},{n:"小锅米线",p:"¥12"},{n:"凉卷粉",p:"¥10"}],
+    reviews:["汤底浓郁，冬天必备","性价比高"] },
+  { id:7,  name:"轻食沙拉站",  cuisine:"轻食",    schools:["A","B","C"], budget:22, rating:4.1, hot:false, x:1.8, y:1.6,
+    img:"https://s2.itho.me/ccms_image/2023/3/21/1e4bf6b7-4ef1-4f44-ac17-5a12416c3fbd.jpg",
+    dishes:[{n:"鸡胸肉沙拉",p:"¥20"},{n:"藜麦碗",p:"¥22"},{n:"果蔬汁",p:"¥12"}],
+    reviews:["减脂期的救星","份量偏小但健康"] },
+  { id:8,  name:"重庆小面馆",  cuisine:"面馆",    schools:["A"],     budget:12, rating:4.8, hot:true,  x:0.2, y:1.5,
+    img:"https://p2.itc.cn/images01/20210810/c6c61ef7de0d48009e5b4eb6c1b5bca0.jpeg",
+    dishes:[{n:"重庆小面",p:"¥10"},{n:"担担面",p:"¥12"},{n:"卤蛋",p:"¥2"}],
+    reviews:["全区最好吃的面！","辣度够，汤底鲜"] },
+  { id:9,  name:"D校门口烤串", cuisine:"烧烤",    schools:["D"],     budget:18, rating:4.3, hot:true,  x:9.2, y:1.8,
+    img:"https://img.zcool.cn/community/01e0c25f5b2d1ea801214168d3bdec.jpg",
+    dishes:[{n:"烤羊肉串",p:"¥3/串"},{n:"烤茄子",p:"¥8"},{n:"烤玉米",p:"¥6"}],
+    reviews:["夜宵必吃，老板很热情","价格公道"] },
+  { id:10, name:"简约西餐厅",  cuisine:"西餐",    schools:["D","C"], budget:30, rating:4.0, hot:false, x:8.8, y:1.2,
+    img:"https://kknews.cc/zh-tw/food/m2p3y6g_640.jpg",
+    dishes:[{n:"意面",p:"¥28"},{n:"沙拉套餐",p:"¥25"},{n:"咖啡",p:"¥18"}],
+    reviews:["环境好，适合小聚","分量稍小但精致"] },
+];
+
+const EMOJI = {"快餐":"🥟","麻辣烫":"🌶️","异国料理":"🍜","粥铺":"🍚","韩餐":"🍱","米线":"🍝","轻食":"🥗","面馆":"🍜","烧烤":"🍢","西餐":"🍽️"};
+
+// ── 状态 ─────────────────────────────────────────────
+let selSchool  = "all";
+let selCampus  = "all";
+let currentLoc = null;
+let budgetF    = "all";
+let cuisineF   = "all";
+let sortMode   = "dist";
+
+// ── 工具函数 ──────────────────────────────────────────
+function getLoc(val) { return ALL_LOCS.find(l => l.val === val); }
+
+function calcDist(r) {
+  if (!currentLoc) return 999;
+  const loc = getLoc(currentLoc);
+  if (!loc) return 999;
+  return Math.sqrt(Math.pow(r.x - loc.x, 2) + Math.pow(r.y - loc.y, 2));
+}
+
+function distLabel(r) {
+  if (!currentLoc) return null;
+  const d = calcDist(r);
+  if (d < 0.5)  return "步行约3分钟";
+  if (d < 1.0)  return "步行约5分钟";
+  if (d < 1.8)  return "步行约8分钟";
+  if (d < 2.5)  return "步行约12分钟";
+  return "步行15分钟以上";
+}
+
+function isNear(r) { return currentLoc && calcDist(r) < 1.2; }
+
+function matchBudget(b, f) {
+  if (f === "all") return true;
+  if (f === "10")  return b < 10;
+  if (f === "20")  return b >= 10 && b <= 20;
+  if (f === "30")  return b > 20  && b <= 30;
+  return true;
+}
+
+function getFiltered() {
+  return RESTAURANTS.filter(r =>
+    (selSchool === "all" || r.schools.includes(selSchool)) &&
+    matchBudget(r.budget, budgetF) &&
+    (cuisineF === "all" || r.cuisine === cuisineF)
+  );
+}
+
+function getSorted(list) {
+  return [...list].sort((a, b) => {
+    if (sortMode === "dist")   return calcDist(a) - calcDist(b);
+    if (sortMode === "rating") return b.rating - a.rating;
+    if (sortMode === "budget") return a.budget - b.budget;
+    return 0;
+  });
+}
+
+// ── 更新校区 tabs ──────────────────────────────────────
+function updateCampusTabs() {
+  const row = document.getElementById("campus-row");
+  if (selSchool === "all") { row.classList.remove("visible"); return; }
+  row.classList.add("visible");
+  const campuses = ["全部校区", ...SCHOOLS[selSchool].campuses];
+  row.innerHTML = '<span class="campus-row-label">校区：</span>' +
+    campuses.map((c, i) => {
+      const val = i === 0 ? "all" : c;
+      return `<span class="campus-chip ${selCampus === val ? 'active' : ''}" data-campus="${val}">${c}</span>`;
+    }).join('');
+  row.querySelectorAll(".campus-chip").forEach(chip => {
+    chip.addEventListener("click", function () {
+      row.querySelectorAll(".campus-chip").forEach(x => x.classList.remove("active"));
+      this.classList.add("active");
+      selCampus = this.dataset.campus;
+      render();
+    });
+  });
+}
+
+// ── 更新位置下拉 ──────────────────────────────────────
+function updateLocOptions() {
+  const sel = document.getElementById("loc-select");
+  sel.innerHTML = '<option value="">选择你的具体位置…</option>';
+  const keys = selSchool === "all" ? Object.keys(LOCS) : [selSchool];
+  keys.forEach(k => {
+    const grp = document.createElement("optgroup");
+    grp.label = SCHOOLS[k].name;
+    LOCS[k].forEach(loc => {
+      const opt = document.createElement("option");
+      opt.value = loc.val;
+      opt.textContent = loc.label;
+      grp.appendChild(opt);
+    });
+    sel.appendChild(grp);
+  });
+  currentLoc = null;
+}
+
+// ── 更新学校餐厅数 ─────────────────────────────────────
+function updateCounts() {
+  const total = RESTAURANTS.length;
+  document.getElementById("count-all").textContent = `${total} 家餐厅`;
+  Object.keys(SCHOOLS).forEach(k => {
+    const n = RESTAURANTS.filter(r => r.schools.includes(k)).length;
+    document.getElementById(`count-${k}`).textContent = `${n} 家餐厅`;
+  });
+  document.getElementById("header-stats").textContent =
+    `覆盖 ${Object.keys(SCHOOLS).length} 所高校 · ${total} 家餐厅`;
+}
+
+// ── 渲染卡片 ──────────────────────────────────────────
+function render() {
+  const filtered = getFiltered();
+  const sorted   = getSorted(filtered);
+  const locName  = currentLoc ? getLoc(currentLoc)?.label : null;
+  document.getElementById("results-count").textContent =
+    `共找到 ${sorted.length} 家餐厅${locName ? "，已按距离排序" : ""}`;
+
+  const grid = document.getElementById("grid");
+  if (!sorted.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🍽️</div>暂无符合条件的餐厅，换个筛选试试？</div>`;
+    return;
+  }
+
+  grid.innerHTML = sorted.map(r => {
+    const dl = distLabel(r);
+    const near = isNear(r);
+    const showSchool = selSchool === "all";
+    return `
+      <div class="card" onclick="openModal(${r.id})">
+        <div class="card-img-wrap">
+          <img class="card-img" src="${r.img}" alt="${r.name}"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="card-img-ph">${EMOJI[r.cuisine] || "🍽️"}</div>
+          ${dl ? `<div class="dist-pill">📍 ${dl}</div>` : ""}
+        </div>
+        <div class="card-body">
+          <div class="card-top">
+            <span class="card-name">${r.name}</span>
+            <span class="card-rating">★ ${r.rating}</span>
+          </div>
+          <div class="card-badges">
+            <span class="badge badge-cuisine">${r.cuisine}</span>
+            <span class="badge badge-budget">人均¥${r.budget}</span>
+            ${r.hot  ? '<span class="badge badge-hot">热门</span>'  : ""}
+            ${near   ? '<span class="badge badge-near">附近</span>' : ""}
+            ${showSchool ? r.schools.map(s => `<span class="badge badge-school">${SCHOOLS[s]?.name || s}</span>`).join("") : ""}
+          </div>
+          <div class="card-footer">${r.schools.map(s => SCHOOLS[s]?.name || s).join(" · ")}</div>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+// ── 弹窗 ──────────────────────────────────────────────
+function openModal(id) {
+  const r = RESTAURANTS.find(x => x.id === id);
+  if (!r) return;
+  const locName = currentLoc ? getLoc(currentLoc)?.label : null;
+  const dl = distLabel(r);
+  document.getElementById("modal").innerHTML = `
+    <img class="modal-img" src="${r.img}" alt="${r.name}"
+      onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+    <div class="modal-img-ph">${EMOJI[r.cuisine] || "🍽️"}</div>
+    <div class="modal-body">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">${r.name}</div>
+          <div class="modal-meta">★ ${r.rating} &nbsp;·&nbsp; 人均¥${r.budget}</div>
+        </div>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      ${dl && locName ? `
+        <div class="modal-dist-banner">
+          📍 距离你（${locName}）${dl}
+        </div>` : ""}
+      <div class="modal-section">
+        <div class="modal-section-label">覆盖学校</div>
+        <div class="school-pills">
+          ${r.schools.map(s => `<span class="school-pill">${SCHOOLS[s]?.name || s}</span>`).join("")}
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-label">推荐菜品</div>
+        <div class="dish-list">
+          ${r.dishes.map(d => `
+            <div class="dish-row">
+              <span>${d.n}</span>
+              <span class="dish-price">${d.p}</span>
+            </div>`).join("")}
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-label">同学说</div>
+        <div class="review-list">
+          ${r.reviews.map(rv => `<div class="review-row">"${rv}"</div>`).join("")}
+        </div>
+      </div>
+    </div>`;
+  document.getElementById("modal-overlay").classList.add("open");
+}
+
+function closeModal() {
+  document.getElementById("modal-overlay").classList.remove("open");
+}
+
+// ── 事件绑定 ──────────────────────────────────────────
+
+// 学校按钮
+document.querySelectorAll(".school-btn").forEach(btn => {
+  btn.addEventListener("click", function () {
+    document.querySelectorAll(".school-btn").forEach(b => b.classList.remove("active"));
+    this.classList.add("active");
+    selSchool = this.dataset.school;
+    selCampus = "all";
+    updateCampusTabs();
+    updateLocOptions();
+    render();
+  });
+});
+
+// 位置选择
+document.getElementById("loc-select").addEventListener("change", function () {
+  currentLoc = this.value || null;
+  if (currentLoc) {
+    sortMode = "dist";
+    document.querySelectorAll(".sort-btn").forEach(b => b.classList.toggle("active", b.dataset.sort === "dist"));
+  }
+  render();
+});
+
+// GPS 定位
+document.getElementById("gps-btn").addEventListener("click", function () {
+  const btn = this;
+  btn.textContent = "定位中…";
+  setTimeout(() => {
+    const firstLoc = selSchool !== "all" ? LOCS[selSchool][0] : LOCS["A"][0];
+    currentLoc = firstLoc.val;
+    document.getElementById("loc-select").value = currentLoc;
+    sortMode = "dist";
+    document.querySelectorAll(".sort-btn").forEach(b => b.classList.toggle("active", b.dataset.sort === "dist"));
+    btn.textContent = "⊙ 已定位";
+    render();
+  }, 1000);
+});
+
+// 筛选 chips
+document.querySelectorAll(".chip").forEach(chip => {
+  chip.addEventListener("click", function () {
+    const type = this.dataset.type, val = this.dataset.val;
+    document.querySelectorAll(`.chip[data-type="${type}"]`).forEach(c => c.classList.remove("active"));
+    this.classList.add("active");
+    if (type === "budget")  budgetF  = val;
+    if (type === "cuisine") cuisineF = val;
+    render();
+  });
+});
+
+// 排序
+document.querySelectorAll(".sort-btn").forEach(btn => {
+  btn.addEventListener("click", function () {
+    sortMode = this.dataset.sort;
+    document.querySelectorAll(".sort-btn").forEach(b => b.classList.remove("active"));
+    this.classList.add("active");
+    render();
+  });
+});
+
+// 随机推荐
+document.getElementById("surprise-btn").addEventListener("click", function () {
+  const list = getFiltered();
+  if (!list.length) return;
+  openModal(list[Math.floor(Math.random() * list.length)].id);
+});
+
+// 点击遮罩关闭弹窗
+document.getElementById("modal-overlay").addEventListener("click", function (e) {
+  if (e.target === this) closeModal();
+});
+
+// ── 初始化 ────────────────────────────────────────────
+updateCounts();
+updateLocOptions();
+render();
+</script>
+</body>
+</html>
